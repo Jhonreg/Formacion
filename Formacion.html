@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORMADOR EQUIPOS FUTBOL CORDOBA</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Animación para los resultados */
+    @keyframes slideInLeft {
+      0% { opacity: 0; transform: translateX(-100%); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      0% { opacity: 0; transform: translateX(100%); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    .team1-animation {
+      animation: slideInLeft 0.7s ease-out forwards;
+    }
+    .team2-animation {
+      animation: slideInRight 0.7s ease-out forwards;
+    }
+    /* Fondo de césped para resultados */
+    #results {
+      background: linear-gradient(to bottom, #2e7d32, #4caf50);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    /* Fondo blanco para equipos */
+    #team1, #team2 {
+      background: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+  <!-- Encabezado -->
+  <header class="bg-red-600 text-white p-4">
+    <div class="container mx-auto">
+      <h1 class="text-2xl font-bold">FORMADOR EQUIPOS FUTBOL CORDOBA</h1>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="container mx-auto p-4 flex-grow">
+    <!-- Asignar Posiciones con Drag-and-Drop -->
+    <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Asignar Posiciones (Máximo 8 por categoría)</h2>
+        <button id="reset-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Reiniciar</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <!-- Columna Sin Asignar -->
+        <div class="border p-4 rounded-lg">
+          <h3 class="text-lg font-medium mb-2">Sin Asignar</h3>
+          <div id="unassigned" class="min-h-[200px] bg-gray-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, null)">
+          </div>
+        </div>
+        <!-- Columna Portero -->
+        <div class="border p-4 rounded-lg">
+          <h3 class="text-lg font-medium mb-2">🧤 Portero <span id="portero-count" class="text-sm text-gray-500">(0/8)</span></h3>
+          <div id="portero" class="min-h-[200px] bg-blue-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'portero')">
+          </div>
+        </div>
+        <!-- Columna Defensa -->
+        <div class="border p-4 rounded-lg">
+          <h3 class="text-lg font-medium mb-2">🛡️ Defensa <span id="defensa-count" class="text-sm text-gray-500">(0/8)</span></h3>
+          <div id="defensa" class="min-h-[200px] bg-green-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'defensa')">
+          </div>
+        </div>
+        <!-- Columna Centro -->
+        <div class="border p-4 rounded-lg">
+          <h3 class="text-lg font-medium mb-2">⚽ Centro <span id="centro-count" class="text-sm text-gray-500">(0/8)</span></h3>
+          <div id="centro" class="min-h-[200px] bg-yellow-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'centro')">
+          </div>
+        </div>
+        <!-- Columna Delantero -->
+        <div class="border p-4 rounded-lg">
+          <h3 class="text-lg font-medium mb-2">🥅 Delantero <span id="delantero-count" class="text-sm text-gray-500">(0/8)</span></h3>
+          <div id="delantero" class="min-h-[200px] bg-red-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'delantero')">
+          </div>
+        </div>
+      </div>
+      <p id="category-error" class="text-red-500 mt-2 hidden">No se puede asignar más de 8 jugadores a esta categoría.</p>
+    </section>
+
+    <!-- Jugadores Listos para el Sorteo -->
+    <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h2 class="text-xl font-semibold mb-4">Jugadores Listos para el Sorteo</h2>
+      <ul id="ready-list" class="list-disc pl-5"></ul>
+    </section>
+
+    <!-- Botón de Sorteo -->
+    <section class="text-center mb-6">
+      <button id="draw-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400" disabled>Realizar Sorteo</button>
+      <p id="draw-error" class="text-red-500 mt-2 hidden">Asigna al menos 14 jugadores, incluyendo al menos 2 porteros, 2 defensas, 2 centros y 2 delanteros.</p>
+    </section>
+
+    <!-- Resultados del Sorteo -->
+    <section id="results" class="hidden">
+      <h2 class="text-xl font-semibold mb-4 text-white">Resultados del Sorteo</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div id="team1" class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-lg font-bold mb-2">Equipo 1</h3>
+          <ul id="team1-list" class="list-disc pl-5"></ul>
+        </div>
+        <div id="team2" class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-lg font-bold mb-2">Equipo 2</h3>
+          <ul id="team2-list" class="list-disc pl-5"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audio para la animación -->
+    <audio id="draw-sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+  </main>
+
+  <!-- Pie de Página -->
+  <footer class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto text-center">
+      <p>© 2025 Formador de Equipos. Creado con GROK</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Jugadores predeterminados
+    let users = [
+      { name: 'Bastidas', category: null },
+      { name: 'Daniel Do', category: null },
+      { name: 'Jhony', category: null },
+      { name: 'El Dogor', category: null },
+      { name: 'Cardona', category: null },
+      { name: 'Kike', category: null },
+      { name: 'Cristian', category: null },
+      { name: 'Jefer tio', category: null },
+      { name: 'German', category: null },
+      { name: 'Toloza', category: null },
+      { name: 'Tolozita', category: null },
+      { name: 'Gustavo', category: null },
+      { name: 'Navas', category: null },
+      { name: 'Sander', category: null },
+      { name: 'Chaguanda', category: null },
+      { name: 'Antony', category: null },
+      { name: 'Jonathan Do', category: null },
+      { name: 'Benji', category: null },
+      { name: 'Anderson', category: null },
+      { name: 'Mario', category: null },
+      { name: 'Boly', category: null },
+      { name: 'Sebastian', category: null },
+      { name: 'Hector', category: null },
+      { name: 'Cheo', category: null }
+    ];
+
+    const unassigned = document.getElementById('unassigned');
+    const readyList = document.getElementById('ready-list');
+    const drawBtn = document.getElementById('draw-btn');
+    const drawError = document.getElementById('draw-error');
+    const results = document.getElementById('results');
+    const team1List = document.getElementById('team1-list');
+    const team2List = document.getElementById('team2-list');
+    const categoryError = document.getElementById('category-error');
+    const resetBtn = document.getElementById('reset-btn');
+    const drawSound = document.getElementById('draw-sound');
+    let hasDrawn = false;
+
+    // Cargar asignaciones desde localStorage con manejo de errores
+    window.onload = () => {
+      try {
+        const savedUsers = localStorage.getItem('users');
+        if (savedUsers) {
+          const parsedUsers = JSON.parse(savedUsers);
+          if (Array.isArray(parsedUsers) && parsedUsers.length === users.length) {
+            users = parsedUsers;
+          } else {
+            console.warn('Datos de localStorage inválidos, usando valores predeterminados');
+          }
+        }
+      } catch (e) {
+        console.error('Error al cargar localStorage:', e);
+      }
+      console.log('Jugadores cargados:', users);
+      hasDrawn = false;
+      updateUserList();
+      updateReadyList();
+      updateDrawButton();
+    };
+
+    // Guardar asignaciones en localStorage
+    function saveAssignments() {
+      try {
+        localStorage.setItem('users', JSON.stringify(users));
+      } catch (e) {
+        console.error('Error al guardar en localStorage:', e);
+      }
+    }
+
+    // Actualizar lista de jugadores
+    function updateUserList() {
+      unassigned.innerHTML = '';
+      users.forEach((user, index) => {
+        if (!user.category) {
+          const div = document.createElement('div');
+          div.id = `player-${index}`;
+          div.draggable = true;
+          div.className = 'p-2 mb-2 bg-white border rounded cursor-move';
+          div.textContent = user.name;
+          div.ondragstart = (event) => {
+            event.dataTransfer.setData('playerIndex', index);
+          };
+          unassigned.appendChild(div);
+        }
+      });
+
+      ['portero', 'defensa', 'centro', 'delantero'].forEach(category => {
+        const container = document.getElementById(category);
+        const countSpan = document.getElementById(`${category}-count`);
+        container.innerHTML = '';
+        const categoryUsers = users.filter(user => user.category === category);
+        countSpan.textContent = `(${categoryUsers.length}/8)`;
+        categoryUsers.forEach((user, index) => {
+          const div = document.createElement('div');
+          div.id = `player-${users.indexOf(user)}`;
+          div.draggable = true;
+          div.className = 'p-2 mb-2 bg-white border rounded cursor-move';
+          div.textContent = user.name;
+          div.ondragstart = (event) => {
+            event.dataTransfer.setData('playerIndex', users.indexOf(user));
+          };
+          container.appendChild(div);
+        });
+      });
+      console.log('Lista de jugadores actualizada:', users);
+    }
+
+    // Manejar el drop
+    function drop(event, category) {
+      event.preventDefault();
+      const index = event.dataTransfer.getData('playerIndex');
+      if (category) {
+        const categoryCount = users.filter(user => user.category === category).length;
+        if (categoryCount >= 8) {
+          categoryError.classList.remove('hidden');
+          setTimeout(() => categoryError.classList.add('hidden'), 2000);
+          return;
+        }
+      }
+      categoryError.classList.add('hidden');
+      users[index].category = category;
+      updateUserList();
+      updateReadyList();
+      updateDrawButton();
+      saveAssignments();
+    }
+
+    // Actualizar lista de jugadores listos
+    function updateReadyList() {
+      readyList.innerHTML = '';
+      const readyUsers = users.filter(user => user.category);
+      readyUsers.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = `${user.name} - ${user.category.charAt(0).toUpperCase() + user.category.slice(1)}`;
+        readyList.appendChild(li);
+      });
+      console.log('Jugadores listos:', readyUsers);
+    }
+
+    // Habilitar/deshabilitar botón de sorteo
+    function updateDrawButton() {
+      const readyUsers = users.filter(user => user.category);
+      const counts = {
+        portero: readyUsers.filter(user => user.category === 'portero').length,
+        defensa: readyUsers.filter(user => user.category === 'defensa').length,
+        centro: readyUsers.filter(user => user.category === 'centro').length,
+        delantero: readyUsers.filter(user => user.category === 'delantero').length
+      };
+      const valid = readyUsers.length >= 14 &&
+                    counts.portero >= 2 &&
+                    counts.defensa >= 2 &&
+                    counts.centro >= 2 &&
+                    counts.delantero >= 2;
+      drawBtn.disabled = !valid || hasDrawn;
+      drawError.classList.toggle('hidden', valid);
+    }
+
+    // Reiniciar asignaciones
+    resetBtn.addEventListener('click', () => {
+      users.forEach(user => user.category = null);
+      hasDrawn = false;
+      updateUserList();
+      updateReadyList();
+      updateDrawButton();
+      results.classList.add('hidden');
+      saveAssignments();
+      console.log('Asignaciones reiniciadas:', users);
+    });
+
+    // Realizar sorteo
+    drawBtn.addEventListener('click', () => {
+      const readyUsers = users.filter(user => user.category);
+      const counts = {
+        portero: readyUsers.filter(user => user.category === 'portero').length,
+        defensa: readyUsers.filter(user => user.category === 'defensa').length,
+        centro: readyUsers.filter(user => user.category === 'centro').length,
+        delantero: readyUsers.filter(user => user.category === 'delantero').length
+      };
+      if (readyUsers.length < 14 ||
+          counts.portero < 2 ||
+          counts.defensa < 2 ||
+          counts.centro < 2 ||
+          counts.delantero < 2 ||
+          hasDrawn) return;
+
+      hasDrawn = true;
+      updateDrawButton();
+
+      // Separar jugadores por categoría
+      const porters = readyUsers.filter(user => user.category === 'portero').sort(() => Math.random() - 0.5);
+      const defenders = readyUsers.filter(user => user.category === 'defensa').sort(() => Math.random() - 0.5);
+      const midfielders = readyUsers.filter(user => user.category === 'centro').sort(() => Math.random() - 0.5);
+      const forwards = readyUsers.filter(user => user.category === 'delantero').sort(() => Math.random() - 0.5);
+
+      // Inicializar equipos
+      let team1 = [];
+      let team2 = [];
+
+      // Función para distribuir jugadores de una categoría
+      function distributePlayers(players, category) {
+        const total = players.length;
+        const team1Count = Math.ceil(total / 2); // Redondear hacia arriba para equipo 1
+        const team2Count = Math.floor(total / 2); // Redondear hacia abajo para equipo 2
+        team1.push(...players.slice(0, team1Count));
+        team2.push(...players.slice(team1Count));
+      }
+
+      // Asignar al menos 1 jugador de cada categoría a cada equipo
+      [porters, defenders, midfielders, forwards].forEach(players => {
+        if (players.length >= 2) {
+          team1.push(players.shift()); // 1 al equipo 1
+          team2.push(players.shift()); // 1 al equipo 2
+        }
+      });
+
+      // Distribuir los jugadores restantes
+      distributePlayers(porters, 'portero');
+      distributePlayers(defenders, 'defensa');
+      distributePlayers(midfielders, 'centro');
+      distributePlayers(forwards, 'delantero');
+
+      // Mezclar jugadores dentro de cada equipo
+      team1 = team1.sort(() => Math.random() - 0.5);
+      team2 = team2.sort(() => Math.random() - 0.5);
+
+      // Ordenar equipos por categoría para mostrar
+      const categoryOrder = { portero: 1, defensa: 2, centro: 3, delantero: 4 };
+      team1.sort((a, b) => categoryOrder[a.category] - categoryOrder[b.category]);
+      team2.sort((a, b) => categoryOrder[a.category] - categoryOrder[b.category]);
+
+      // Seleccionar capitanes
+      const captain1 = team1[Math.floor(Math.random() * team1.length)];
+      const captain2 = team2[Math.floor(Math.random() * team2.length)];
+
+      // Mostrar resultados con animación
+      results.classList.remove('hidden');
+      team1List.innerHTML = '';
+      team2List.innerHTML = '';
+      document.getElementById('team1').classList.add('team1-animation');
+      document.getElementById('team2').classList.add('team2-animation');
+
+      // Reproducir sonido
+      drawSound.play().catch(() => {});
+
+      team1.forEach(user => {
+        const li = document.createElement('li');
+        if (user === captain1) {
+          li.innerHTML = `<span class="text-yellow-500 font-bold">Capitán: ${user.name}</span> - ${user.category.charAt(0).toUpperCase() + user.category.slice(1)}`;
+        } else {
+          li.textContent = `${user.name} - ${user.category.charAt(0).toUpperCase() + user.category.slice(1)}`;
+        }
+        team1List.appendChild(li);
+      });
+
+      team2.forEach(user => {
+        const li = document.createElement('li');
+        if (user === captain2) {
+          li.innerHTML = `<span class="text-yellow-500 font-bold">Capitán: ${user.name}</span> - ${user.category.charAt(0).toUpperCase() + user.category.slice(1)}`;
+        } else {
+          li.textContent = `${user.name} - ${user.category.charAt(0).toUpperCase() + user.category.slice(1)}`;
+        }
+        team2List.appendChild(li);
+      });
+
+      // Limpiar clases de animación, mantener visibilidad
+      setTimeout(() => {
+        document.getElementById('team1').classList.remove('team1-animation');
+        document.getElementById('team2').classList.remove('team2-animation');
+        document.getElementById('team1').style.opacity = '1';
+        document.getElementById('team2').style.opacity = '1';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
