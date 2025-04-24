@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FORMADOR EQUIPOS FUTBOL CORDOBA</title>
+  <title>Formador de Equipos de Fútbol</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -32,13 +32,49 @@
     #team1, #team2 {
       background: white;
     }
+    /* Estilos para drag-and-drop */
+    .dragging {
+      opacity: 0.7;
+      transform: scale(1.05);
+      z-index: 1000;
+      position: fixed;
+      pointer-events: none;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .drop-zone {
+      min-height: 150px;
+      transition: background-color 0.2s;
+    }
+    .drop-zone.drag-over {
+      background-color: rgba(59, 130, 246, 0.1);
+      border: 2px dashed #3b82f6;
+    }
+    /* Ajustes para móviles */
+    @media (max-width: 640px) {
+      .grid-cols-5 {
+        grid-template-columns: 1fr;
+      }
+      .drop-zone {
+        min-height: 200px;
+      }
+      .p-2 {
+        padding: 0.5rem;
+      }
+      button, input {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex flex-col">
   <!-- Encabezado -->
-  <header class="bg-red-600 text-white p-4">
+  <header class="bg-blue-600 text-white p-4">
     <div class="container mx-auto">
-      <h1 class="text-2xl font-bold">FORMADOR EQUIPOS FUTBOL CORDOBA</h1>
+      <h1 class="text-2xl font-bold">Formador de Equipos de Fútbol</h1>
     </div>
   </header>
 
@@ -46,39 +82,45 @@
   <main class="container mx-auto p-4 flex-grow">
     <!-- Asignar Posiciones con Drag-and-Drop -->
     <section class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <!-- Cuadro para añadir usuario -->
+      <div class="mb-4 flex items-center">
+        <input id="new-player" type="text" placeholder="Añadir nuevo jugador" class="border p-2 rounded w-48 text-sm">
+        <button id="add-player-btn" class="bg-blue-600 text-white px-3 py-2 ml-2 rounded hover:bg-blue-700 text-sm touch-manipulation">Añadir</button>
+        <p id="add-error" class="text-red-500 text-sm mt-1 hidden">Ingresa un nombre válido.</p>
+      </div>
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold">Asignar Posiciones (Máximo 8 por categoría)</h2>
-        <button id="reset-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Reiniciar</button>
+        <button id="reset-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 touch-manipulation">Reiniciar</button>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
         <!-- Columna Sin Asignar -->
         <div class="border p-4 rounded-lg">
           <h3 class="text-lg font-medium mb-2">Sin Asignar</h3>
-          <div id="unassigned" class="min-h-[200px] bg-gray-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, null)">
+          <div id="unassigned" class="drop-zone bg-gray-50 p-2 rounded">
           </div>
         </div>
         <!-- Columna Portero -->
         <div class="border p-4 rounded-lg">
           <h3 class="text-lg font-medium mb-2">🧤 Portero <span id="portero-count" class="text-sm text-gray-500">(0/8)</span></h3>
-          <div id="portero" class="min-h-[200px] bg-blue-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'portero')">
+          <div id="portero" class="drop-zone bg-blue-50 p-2 rounded">
           </div>
         </div>
         <!-- Columna Defensa -->
         <div class="border p-4 rounded-lg">
           <h3 class="text-lg font-medium mb-2">🛡️ Defensa <span id="defensa-count" class="text-sm text-gray-500">(0/8)</span></h3>
-          <div id="defensa" class="min-h-[200px] bg-green-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'defensa')">
+          <div id="defensa" class="drop-zone bg-green-50 p-2 rounded">
           </div>
         </div>
         <!-- Columna Centro -->
         <div class="border p-4 rounded-lg">
           <h3 class="text-lg font-medium mb-2">⚽ Centro <span id="centro-count" class="text-sm text-gray-500">(0/8)</span></h3>
-          <div id="centro" class="min-h-[200px] bg-yellow-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'centro')">
+          <div id="centro" class="drop-zone bg-yellow-50 p-2 rounded">
           </div>
         </div>
         <!-- Columna Delantero -->
         <div class="border p-4 rounded-lg">
           <h3 class="text-lg font-medium mb-2">🥅 Delantero <span id="delantero-count" class="text-sm text-gray-500">(0/8)</span></h3>
-          <div id="delantero" class="min-h-[200px] bg-red-50 p-2 rounded" ondragover="event.preventDefault()" ondrop="drop(event, 'delantero')">
+          <div id="delantero" class="drop-zone bg-red-50 p-2 rounded">
           </div>
         </div>
       </div>
@@ -93,7 +135,7 @@
 
     <!-- Botón de Sorteo -->
     <section class="text-center mb-6">
-      <button id="draw-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400" disabled>Realizar Sorteo</button>
+      <button id="draw-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 touch-manipulation">Realizar Sorteo</button>
       <p id="draw-error" class="text-red-500 mt-2 hidden">Asigna al menos 14 jugadores, incluyendo al menos 2 porteros, 2 defensas, 2 centros y 2 delanteros.</p>
     </section>
 
@@ -119,7 +161,7 @@
   <!-- Pie de Página -->
   <footer class="bg-gray-800 text-white py-4">
     <div class="container mx-auto text-center">
-      <p>© 2025 Formador de Equipos. Creado con GROK</p>
+      <p>© 2025 Formador de Equipos. Creado con 💪</p>
     </div>
   </footer>
 
@@ -150,7 +192,8 @@
       { name: 'Boly', category: null },
       { name: 'Sebastian', category: null },
       { name: 'Hector', category: null },
-      { name: 'Cheo', category: null }
+      { name: 'Cheo', category: null },
+      { name: 'Kirian', category: null }
     ];
 
     const unassigned = document.getElementById('unassigned');
@@ -163,7 +206,14 @@
     const categoryError = document.getElementById('category-error');
     const resetBtn = document.getElementById('reset-btn');
     const drawSound = document.getElementById('draw-sound');
+    const newPlayerInput = document.getElementById('new-player');
+    const addPlayerBtn = document.getElementById('add-player-btn');
+    const addError = document.getElementById('add-error');
     let hasDrawn = false;
+    let draggedElement = null;
+    let touchClone = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     // Cargar asignaciones desde localStorage con manejo de errores
     window.onload = () => {
@@ -171,14 +221,19 @@
         const savedUsers = localStorage.getItem('users');
         if (savedUsers) {
           const parsedUsers = JSON.parse(savedUsers);
-          if (Array.isArray(parsedUsers) && parsedUsers.length === users.length) {
+          if (Array.isArray(parsedUsers) && parsedUsers.every(u => u.name && (u.category === null || ['portero', 'defensa', 'centro', 'delantero'].includes(u.category)))) {
             users = parsedUsers;
+            if (!users.some(u => u.name === 'Kirian')) {
+              users.push({ name: 'Kirian', category: null });
+            }
           } else {
             console.warn('Datos de localStorage inválidos, usando valores predeterminados');
+            localStorage.removeItem('users');
           }
         }
       } catch (e) {
         console.error('Error al cargar localStorage:', e);
+        localStorage.removeItem('users');
       }
       console.log('Jugadores cargados:', users);
       hasDrawn = false;
@@ -196,6 +251,30 @@
       }
     }
 
+    // Añadir nuevo jugador
+    addPlayerBtn.addEventListener('click', addNewPlayer);
+    newPlayerInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        addNewPlayer();
+      }
+    });
+
+    function addNewPlayer() {
+      const name = newPlayerInput.value.trim();
+      if (!name) {
+        addError.classList.remove('hidden');
+        setTimeout(() => addError.classList.add('hidden'), 2000);
+        return;
+      }
+      users.push({ name, category: null });
+      newPlayerInput.value = '';
+      updateUserList();
+      updateReadyList();
+      updateDrawButton();
+      saveAssignments();
+      console.log('Jugador añadido:', name);
+    }
+
     // Actualizar lista de jugadores
     function updateUserList() {
       unassigned.innerHTML = '';
@@ -204,11 +283,16 @@
           const div = document.createElement('div');
           div.id = `player-${index}`;
           div.draggable = true;
-          div.className = 'p-2 mb-2 bg-white border rounded cursor-move';
+          div.className = 'p-2 mb-2 bg-white border rounded cursor-move touch-manipulation';
           div.textContent = user.name;
           div.ondragstart = (event) => {
+            console.log('Drag start:', user.name);
+            draggedElement = event.target;
             event.dataTransfer.setData('playerIndex', index);
           };
+          div.addEventListener('touchstart', handleTouchStart, { passive: false });
+          div.addEventListener('touchmove', handleTouchMove, { passive: false });
+          div.addEventListener('touchend', handleTouchEnd);
           unassigned.appendChild(div);
         }
       });
@@ -223,22 +307,93 @@
           const div = document.createElement('div');
           div.id = `player-${users.indexOf(user)}`;
           div.draggable = true;
-          div.className = 'p-2 mb-2 bg-white border rounded cursor-move';
+          div.className = 'p-2 mb-2 bg-white border rounded cursor-move touch-manipulation';
           div.textContent = user.name;
           div.ondragstart = (event) => {
+            console.log('Drag start:', user.name);
+            draggedElement = event.target;
             event.dataTransfer.setData('playerIndex', users.indexOf(user));
           };
+          div.addEventListener('touchstart', handleTouchStart, { passive: false });
+          div.addEventListener('touchmove', handleTouchMove, { passive: false });
+          div.addEventListener('touchend', handleTouchEnd);
           container.appendChild(div);
         });
       });
+
+      document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.ondragover = (event) => {
+          event.preventDefault();
+          zone.classList.add('drag-over');
+        };
+        zone.ondragleave = () => {
+          zone.classList.remove('drag-over');
+        };
+        zone.ondrop = (event) => {
+          console.log('Drop en:', zone.id);
+          zone.classList.remove('drag-over');
+          drop(event, zone.id);
+        };
+      });
+
       console.log('Lista de jugadores actualizada:', users);
+    }
+
+    // Manejo de eventos táctiles
+    function handleTouchStart(event) {
+      event.preventDefault();
+      draggedElement = event.target;
+      console.log('Touch start:', draggedElement.textContent);
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+      touchClone = draggedElement.cloneNode(true);
+      touchClone.classList.add('dragging');
+      document.body.appendChild(touchClone);
+      positionClone(event);
+    }
+
+    function handleTouchMove(event) {
+      event.preventDefault();
+      if (!touchClone) return;
+      console.log('Touch move:', event.touches[0].clientX, event.touches[0].clientY);
+      positionClone(event);
+      const touch = event.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drag-over'));
+      if (target && target.closest('.drop-zone')) {
+        target.closest('.drop-zone').classList.add('drag-over');
+      }
+    }
+
+    function handleTouchEnd(event) {
+      console.log('Touch end');
+      if (!draggedElement || !touchClone) return;
+      const touch = event.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      document.body.removeChild(touchClone);
+      touchClone = null;
+      document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drag-over'));
+      if (target && target.closest('.drop-zone')) {
+        const dropZone = target.closest('.drop-zone');
+        console.log('Soltado en:', dropZone.id);
+        drop({ preventDefault: () => {}, dataTransfer: { getData: () => draggedElement.id.split('-')[1] } }, dropZone.id);
+      } else {
+        console.log('Soltado fuera de una zona válida');
+      }
+      draggedElement = null;
+    }
+
+    function positionClone(event) {
+      const touch = event.touches[0];
+      touchClone.style.left = `${touch.clientX - 50}px`;
+      touchClone.style.top = `${touch.clientY - 20}px`;
     }
 
     // Manejar el drop
     function drop(event, category) {
       event.preventDefault();
       const index = event.dataTransfer.getData('playerIndex');
-      if (category) {
+      if (category && category !== 'unassigned') {
         const categoryCount = users.filter(user => user.category === category).length;
         if (categoryCount >= 8) {
           categoryError.classList.remove('hidden');
@@ -247,11 +402,12 @@
         }
       }
       categoryError.classList.add('hidden');
-      users[index].category = category;
+      users[index].category = category === 'unassigned' ? null : category;
       updateUserList();
       updateReadyList();
       updateDrawButton();
       saveAssignments();
+      console.log('Jugador asignado:', users[index].name, 'a', category || 'Sin Asignar');
     }
 
     // Actualizar lista de jugadores listos
@@ -321,15 +477,36 @@
       const midfielders = readyUsers.filter(user => user.category === 'centro').sort(() => Math.random() - 0.5);
       const forwards = readyUsers.filter(user => user.category === 'delantero').sort(() => Math.random() - 0.5);
 
+      // Calcular tamaño de equipos
+      const totalPlayers = readyUsers.length;
+      const isEven = totalPlayers % 2 === 0;
+      const teamSize = isEven ? totalPlayers / 2 : Math.floor(totalPlayers / 2);
+
       // Inicializar equipos
       let team1 = [];
       let team2 = [];
+      let lastExtraTeam = 'team2'; // Comenzar asignando extra a Equipo 2
 
       // Función para distribuir jugadores de una categoría
       function distributePlayers(players, category) {
         const total = players.length;
-        const team1Count = Math.ceil(total / 2); // Redondear hacia arriba para equipo 1
-        const team2Count = Math.floor(total / 2); // Redondear hacia abajo para equipo 2
+        let team1Count, team2Count;
+        if (total % 2 === 0) {
+          team1Count = total / 2;
+          team2Count = total / 2;
+        } else {
+          // Alternar el equipo que recibe el jugador extra
+          if (lastExtraTeam === 'team2') {
+            team1Count = Math.ceil(total / 2);
+            team2Count = Math.floor(total / 2);
+            lastExtraTeam = 'team1';
+          } else {
+            team1Count = Math.floor(total / 2);
+            team2Count = Math.ceil(total / 2);
+            lastExtraTeam = 'team2';
+          }
+        }
+        console.log(`Distribuyendo ${category}: ${team1Count} a Equipo 1, ${team2Count} a Equipo 2`);
         team1.push(...players.slice(0, team1Count));
         team2.push(...players.slice(team1Count));
       }
@@ -337,8 +514,8 @@
       // Asignar al menos 1 jugador de cada categoría a cada equipo
       [porters, defenders, midfielders, forwards].forEach(players => {
         if (players.length >= 2) {
-          team1.push(players.shift()); // 1 al equipo 1
-          team2.push(players.shift()); // 1 al equipo 2
+          team1.push(players.shift());
+          team2.push(players.shift());
         }
       });
 
@@ -348,9 +525,19 @@
       distributePlayers(midfielders, 'centro');
       distributePlayers(forwards, 'delantero');
 
-      // Mezclar jugadores dentro de cada equipo
-      team1 = team1.sort(() => Math.random() - 0.5);
-      team2 = team2.sort(() => Math.random() - 0.5);
+      // Ajustar para igualar equipos si es par
+      if (isEven && team1.length !== team2.length) {
+        while (team1.length > teamSize) {
+          const player = team1.pop();
+          team2.push(player);
+          console.log(`Moviendo ${player.name} a Equipo 2 para igualar`);
+        }
+        while (team2.length > teamSize) {
+          const player = team2.pop();
+          team1.push(player);
+          console.log(`Moviendo ${player.name} a Equipo 1 para igualar`);
+        }
+      }
 
       // Ordenar equipos por categoría para mostrar
       const categoryOrder = { portero: 1, defensa: 2, centro: 3, delantero: 4 };
@@ -391,7 +578,11 @@
         team2List.appendChild(li);
       });
 
-      // Limpiar clases de animación, mantener visibilidad
+      // Log de resultados
+      console.log('Equipo 1:', team1.map(u => `${u.name} (${u.category})`));
+      console.log('Equipo 2:', team2.map(u => `${u.name} (${u.category})`));
+
+      // Limpiar clases de animación
       setTimeout(() => {
         document.getElementById('team1').classList.remove('team1-animation');
         document.getElementById('team2').classList.remove('team2-animation');
